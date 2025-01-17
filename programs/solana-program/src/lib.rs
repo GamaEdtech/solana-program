@@ -122,6 +122,52 @@ pub mod solana_program {
 
         Ok(())
     }
+
+    pub fn vote_on_proposal(
+        ctx: Context<VoteOnProposals>,
+        vote: VoteType,
+    ) -> Result<()> {
+        let proposal = &mut ctx.accounts.proposal;
+
+        // Check if the voting period has ended
+        let current_timestamp = Clock::get()?.unix_timestamp;
+        if current_timestamp < proposal.start_date || current_timestamp > proposal.end_date {
+            return Err(error!(VotingError::VotingClosed));
+        }
+
+        // Get the voter's public key
+        let voter = ctx.accounts.voter.key;
+
+        // Create a PDA to track the voter's vote on this proposal
+        let (voter_pda, bump) = Pubkey::find_program_address(
+            &[b"vote", proposal.id.to_le_bytes().as_ref(), voter.as_ref()],
+            &ctx.program_id,
+        );
+
+        // Check if the PDA already exists (i.e., the user has voted)
+        if ctx.accounts.voter_pda.bump != 0 {
+            return Err(error!(VotingError::AlreadyVoted));
+        }
+
+        // Update the vote count based on the vote type
+        match vote {
+            VoteType::For => {
+                proposal.for_votes += 1;
+            }
+            VoteType::Against => {
+                proposal.against_votes += 1;
+            }
+            VoteType::Abstain => {
+                proposal.abstain_votes += 1;
+            }
+        }
+
+        // Create or update the voter PDA to mark the vote as cast
+        let _voter_pda_account = &mut ctx.accounts.voter_pda;
+        _voter_pda_account.bump = bump;
+
+        Ok(())
+    }
 }
 
 
@@ -177,6 +223,27 @@ pub struct DeleteProposal<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct VoteOnProposals<'info> {
+    #[account(mut)]
+    pub proposal: Account<'info, Proposal>,
+
+    #[account(mut)]
+    pub voter: Signer<'info>,
+
+    // Voter PDA account
+    #[account(
+        init_if_needed,
+        payer = voter,
+        space = 8 + 1, // Bump field size
+        seeds = [b"vote", proposal.id.to_le_bytes().as_ref(), voter.key().as_ref()],
+        bump
+    )]
+    pub voter_pda: Account<'info, VoterPDA>,
+
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 pub struct Proposal {
     pub id: u64, // Unique identifier for the proposal
@@ -195,6 +262,18 @@ pub struct ProposalCounter {
     pub count: u64, // Tracks the number of proposals created by a specific user
 }
 
+#[account]
+pub struct VoterPDA {
+    pub bump: u8, // Bump to ensure the PDA is valid
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
+pub enum VoteType {
+    For,
+    Against,
+    Abstain,
+}
+
 #[error_code]
 pub enum ProposalError {
     #[msg("Unauthorized: only the creator of the proposal can perform this action.")]
@@ -205,4 +284,12 @@ pub enum ProposalError {
     DescriptionTooLong,
     #[msg("The start date must be earlier than the end date.")]
     InvalidDates,
+}
+
+#[error_code]
+pub enum VotingError {
+    #[msg("The voter has already voted on this proposal.")]
+    AlreadyVoted,
+    #[msg("Voting is closed for this proposal.")]
+    VotingClosed,
 }
