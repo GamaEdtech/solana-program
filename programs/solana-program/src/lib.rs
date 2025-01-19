@@ -139,7 +139,7 @@ pub mod solana_program {
         let voter = ctx.accounts.voter.key;
 
         // Create a PDA to track the voter's vote on this proposal
-        let (voter_pda, bump) = Pubkey::find_program_address(
+        let (_voter_pda, bump) = Pubkey::find_program_address(
             &[b"vote", proposal.id.to_le_bytes().as_ref(), voter.as_ref()],
             &ctx.program_id,
         );
