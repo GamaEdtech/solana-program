@@ -12,7 +12,7 @@ const PROPOSAL_ACCOUNT_SIZE: usize = 8 // Discriminator
     + 8 // Against votes
     + 8; // Abstain votes
 
-declare_id!("8S7KF153nyYtXSsVNokzZQdpDz3StcfiPBtmt73ZtBJy");
+declare_id!("ApKUX25zL86gHSsvuexnpRb7A7G57YVAhK1srYMD7whG");
 
 #[program]
 pub mod solana_program {
