@@ -5,14 +5,14 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-solana_program = "8S7KF153nyYtXSsVNokzZQdpDz3StcfiPBtmt73ZtBJy"
+solana_program = "ApKUX25zL86gHSsvuexnpRb7A7G57YVAhK1srYMD7whG"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "/home/sadeq/.config/solana/id.json"
+wallet = "/home/aryan07/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
