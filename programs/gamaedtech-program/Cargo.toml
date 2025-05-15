@@ -1,6 +1,6 @@
 [package]
-name = "solana-program"
-version = "0.1.0"
+name = "gamaedtech-program"
+version = "0.1.1"
 description = "Created with Anchor"
 edition = "2021"
 
@@ -19,5 +19,6 @@ custom-panic = []
 anchor-debug = []
 no-idl = []
 
+
 [dependencies]
-anchor-lang = { version = "0.30.1", features = ["init-if-needed"]}
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"]}
